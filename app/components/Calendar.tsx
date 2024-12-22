@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   formatDate,
   DateSelectArg,
@@ -21,36 +21,26 @@ import { useEvent } from '@/app/context/EventContext';
 import { useRouter } from 'next/navigation';
 
 const Calendar: React.FC = () => {
-  const [currentEvents, setCurrentEvents] = useState<EventApi[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [newEventTitle, setNewEventTitle] = useState<string>("");
   const [newEventTime, setNewEventTime] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<DateSelectArg | null>(null);
-  const { currentEvent, setCurrentEvent } = useEvent();
+  const [showTooltip, setShowTooltip] = useState(false);
+  const { currentEvent, setCurrentEvent, allEvents, setAllEvents } = useEvent();
   const router = useRouter();
 
+  // Load initial events from localStorage
   useEffect(() => {
-    if (currentEvents && currentEvents.length > 0) {
-      currentEvents.forEach(event => {
-        console.log("Event Title:", event.title);
-        console.log("Start Date and Time:", event.start);
-        console.log("End Date and Time:", event.end);
-      });
-    }
-  }, [currentEvents]);
-
-  useEffect(() => {
-    if (currentEvents.length > 0) {
-      const eventsToSave = currentEvents.map(event => ({
-        id: event.id,
-        title: event.title,
-        start: event.startStr,
-        end: event.endStr,
-        allDay: event.allDay
+    if (typeof window !== "undefined") {
+      const savedEvents = JSON.parse(localStorage.getItem("events") || "[]");
+      const initialEvents = savedEvents.map((event: any) => ({
+        ...event,
+        start: new Date(event.start),
+        end: new Date(event.end)
       }));
-      localStorage.setItem('events', JSON.stringify(eventsToSave));
+      // We'll set these when the calendar loads through eventsSet
     }
-  }, [currentEvents]);
+  }, []);
 
   const handleDateClick = (selected: DateSelectArg) => {
     setSelectedDate(selected);
@@ -58,13 +48,16 @@ const Calendar: React.FC = () => {
   };
 
   const handleEventClick = (selected: EventClickArg) => {
-    // Prompt user for confirmation before deleting an event
     if (
       window.confirm(
         `Are you sure you want to delete the event "${selected.event.title}"?`
       )
     ) {
       selected.event.remove();
+      // Clear currentEvent if it's the one being deleted
+      if (currentEvent && currentEvent.id === selected.event.id) {
+        setCurrentEvent(null);
+      }
     }
   };
 
@@ -121,6 +114,11 @@ const Calendar: React.FC = () => {
     }
   };
 
+  const handleDisabledButtonClick = useCallback(() => {
+    setShowTooltip(true);
+    setTimeout(() => setShowTooltip(false), 3000); // Hide tooltip after 3 seconds
+  }, []);
+
   return (
     <div className="min-h-screen p-4 lg:p-8 bg-white">
       <div className="flex flex-col lg:flex-row w-full gap-6 relative">
@@ -141,7 +139,9 @@ const Calendar: React.FC = () => {
             dayMaxEvents={true}
             select={handleDateClick}
             eventClick={handleEventClick}
-            eventsSet={(events) => setCurrentEvents(events)}
+            eventsSet={(events) => {
+              setAllEvents(events); // Update the centralized events state
+            }}
             initialEvents={
               typeof window !== "undefined"
                 ? JSON.parse(localStorage.getItem("events") || "[]").map((event: any) => ({
@@ -171,37 +171,78 @@ const Calendar: React.FC = () => {
 
         {/* Venue Selection Button - Now responsive */}
         <div className="lg:w-1/5">
-          <div className="sticky top-4 bg-white rounded-lg shadow-md p-4">
-            <button
-              onClick={() => router.push('/venues')}
-              className="w-full bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={!currentEvent}
-            >
-              <span>Next: Select Venue</span>
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="h-5 w-5" 
-                viewBox="0 0 20 20" 
-                fill="currentColor"
+          <div className="sticky top-4 bg-white rounded-lg shadow-md p-4 space-y-4">
+            <div className="relative">
+              <button
+                onClick={currentEvent ? () => router.push('/venues') : handleDisabledButtonClick}
+                className={`w-full px-6 py-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${
+                  currentEvent 
+                    ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+                    : 'bg-blue-300 cursor-not-allowed text-white'
+                }`}
+                aria-disabled={!currentEvent}
               >
-                <path 
-                  fillRule="evenodd" 
-                  d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" 
-                  clipRule="evenodd" 
-                />
-              </svg>
-            </button>
-            
-            {/* Optional: Add event summary */}
-            {currentEvent && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <h3 className="font-semibold text-lg mb-2">Selected Event</h3>
-                <p className="text-gray-700">{currentEvent.title}</p>
-                <p className="text-sm text-gray-500">
-                  {currentEvent.start?.toLocaleDateString()}
-                </p>
+                <span>Next: Select Venue</span>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  className="h-5 w-5" 
+                  viewBox="0 0 20 20" 
+                  fill="currentColor"
+                >
+                  <path 
+                    fillRule="evenodd" 
+                    d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" 
+                    clipRule="evenodd" 
+                  />
+                </svg>
+              </button>
+              
+              {showTooltip && !currentEvent && (
+                <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-md text-sm whitespace-nowrap z-50">
+                  Please create an event first
+                  <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-0 h-0 
+                                border-l-8 border-r-8 border-b-8 
+                                border-l-transparent border-r-transparent border-b-gray-800">
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Events List */}
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-3">My Events</h3>
+              <div className="space-y-3">
+                {allEvents.length > 0 ? (
+                  allEvents.map((event) => (
+                    <div 
+                      key={event.id} 
+                      className="p-3 bg-gray-50 border border-gray-200"
+                    >
+                      <h4 className="font-medium text-gray-900">{event.title}</h4>
+                      <p className="text-sm text-gray-600">
+                        {formatDate(event.start!, {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          meridiem: true
+                        })}
+                      </p>
+                      {!event.allDay && (
+                        <p className="text-sm text-gray-600">
+                          Duration: {event.end ? 
+                            `${Math.round((event.end.getTime() - event.start!.getTime()) / (1000 * 60))} minutes` 
+                            : '1 hour'}
+                        </p>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-sm">No events scheduled</p>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
