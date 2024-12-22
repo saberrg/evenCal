@@ -66,13 +66,20 @@ const Calendar: React.FC = () => {
   const handleAddEvent = (e: React.FormEvent) => {
     e.preventDefault();
     if (newEventTitle && selectedDate) {
-      const calendarApi = selectedDate.view.calendar; // Get the calendar API instance.
-      calendarApi.unselect(); // Unselect the date range.
+      const calendarApi = selectedDate.view.calendar;
+      calendarApi.unselect();
+
+      // Combine date and time correctly
+      const startDate = new Date(selectedDate.start);
+      if (newEventTime) {
+        const [hours, minutes] = newEventTime.split(':').map(Number);
+        startDate.setHours(hours, minutes);
+      }
 
       const newEvent = {
         id: `${selectedDate.start.toISOString()}-${newEventTitle}`,
         title: newEventTitle,
-        start: new Date(`${selectedDate.start.toISOString().split('T')[0]}T${newEventTime}`),
+        start: startDate,
         end: selectedDate.end,
         allDay: selectedDate.allDay,
       };
@@ -117,29 +124,32 @@ const Calendar: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Add New Event Details</DialogTitle>
           </DialogHeader>
-          <form className="space-x-5 mb-4" onSubmit={handleAddEvent}>
+          <form className="flex flex-col items-center space-y-4 mb-4" onSubmit={handleAddEvent}>
             <input
               type="text"
               placeholder="Event Title"
               value={newEventTitle}
               onChange={(e) => setNewEventTitle(e.target.value)} // Update new event title as the user types.
               required
-              className="border border-gray-200 p-3 rounded-md text-lg"
+              className="border border-gray-200 p-3 rounded-md text-lg w-full"
             />
             <input
               type="time"
               value={newEventTime}
-              onChange={(e) => setNewEventTime(e.target.value)} // Update new event time as the user selects.
-              required
-              className="border border-gray-200 p-3 rounded-md text-lg"
+              onChange={(e) => {
+                const timeValue = e.target.value;
+                const [hours, minutes] = timeValue.split(':');
+                setNewEventTime(`${hours}:${minutes}`); // Set time without seconds
+              }}
+              className="border border-gray-200 p-3 rounded-md text-lg w-full"
+              step="60" // Step in minutes to avoid seconds
             />
             <button
-              className="bg-green-500 text-white p-3 mt-5 rounded-md"
+              className="bg-green-500 text-white p-3 rounded-md w-full"
               type="submit"
             >
               Add
-            </button>{" "}
-            {/* Button to submit new event */}
+            </button>
           </form>
         </DialogContent>
       </Dialog>
