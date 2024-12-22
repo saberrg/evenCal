@@ -2,8 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
+/* Remove or comment out this line since we'll use the font from Next.js */
+/* body {
   font-family: Arial, Helvetica, sans-serif;
+} */
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-rozha-one), serif;
+  }
 }
 
 @layer base {

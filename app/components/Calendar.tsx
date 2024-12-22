@@ -22,6 +22,7 @@ const Calendar: React.FC = () => {
   const [currentEvents, setCurrentEvents] = useState<EventApi[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [newEventTitle, setNewEventTitle] = useState<string>("");
+  const [newEventTime, setNewEventTime] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<DateSelectArg | null>(null);
 
   useEffect(() => {
@@ -71,7 +72,7 @@ const Calendar: React.FC = () => {
       const newEvent = {
         id: `${selectedDate.start.toISOString()}-${newEventTitle}`,
         title: newEventTitle,
-        start: selectedDate.start,
+        start: new Date(`${selectedDate.start.toISOString().split('T')[0]}T${newEventTime}`),
         end: selectedDate.end,
         allDay: selectedDate.allDay,
       };
@@ -122,6 +123,13 @@ const Calendar: React.FC = () => {
               placeholder="Event Title"
               value={newEventTitle}
               onChange={(e) => setNewEventTitle(e.target.value)} // Update new event title as the user types.
+              required
+              className="border border-gray-200 p-3 rounded-md text-lg"
+            />
+            <input
+              type="time"
+              value={newEventTime}
+              onChange={(e) => setNewEventTime(e.target.value)} // Update new event time as the user selects.
               required
               className="border border-gray-200 p-3 rounded-md text-lg"
             />
