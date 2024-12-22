@@ -3,6 +3,7 @@ import "./globals.css";
 import { Rozha_One } from "next/font/google";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import { EventProvider } from './context/EventContext';
 
 const rozhaOne = Rozha_One({
   weight: ["400"],
@@ -22,10 +23,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={rozhaOne.className}>
-        <Header />
-        <main>{children}</main>
-        <Footer />
+      <body className={`${rozhaOne.className} flex flex-col min-h-screen`}>
+        <EventProvider>
+          <Header />
+          <div className="flex-1">{children}</div>
+          <Footer />
+        </EventProvider>
       </body>
     </html>
   );
