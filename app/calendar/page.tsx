@@ -11,7 +11,7 @@ export default function CalendarPage() {
       <div className="w-full max-w-4xl">
         <h1 className="text-2xl font-bold mb-6 text-center">Event Calendar</h1>
         <div className="bg-white rounded-lg shadow-lg p-4">
-          <Calendar viewOnly={true} />
+          <Calendar editable={false} />
         </div>
       </div>
     </main>
