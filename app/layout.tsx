@@ -4,6 +4,7 @@ import { Rozha_One } from "next/font/google";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { EventProvider } from './context/EventContext';
+import { VenueProvider } from './context/VenueContext';
 
 const rozhaOne = Rozha_One({
   weight: ["400"],
@@ -18,18 +19,22 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <body className={`${rozhaOne.className} flex flex-col min-h-screen`}>
-        <EventProvider>
-          <Header />
-          <div className="flex-1">{children}</div>
-          <Footer />
-        </EventProvider>
+      <body className={rozhaOne.variable}>
+        <VenueProvider>
+          <EventProvider>
+            <Header />
+            <main>
+              {children}
+            </main>
+            <Footer />
+          </EventProvider>
+        </VenueProvider>
       </body>
     </html>
-  );
+  )
 }

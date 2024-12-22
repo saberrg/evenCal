@@ -63,3 +63,54 @@
 .fc .fc-toolbar-title {
   margin: 0 2rem;
 }
+
+/* Add these styles for FullCalendar */
+.calendar-container {
+  height: 800px;
+  width: 100%;
+}
+
+.fc {
+  height: 100%;
+}
+
+.fc .fc-toolbar {
+  margin-bottom: 1.5em;
+}
+
+.fc .fc-button {
+  background-color: #3b82f6;
+  border: none;
+  padding: 0.5em 1em;
+}
+
+.fc .fc-button:hover {
+  background-color: #2563eb;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background-color: #1d4ed8;
+}
+
+.fc-event {
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.fc-daygrid-day {
+  cursor: pointer;
+}
+
+.fc th {
+  padding: 10px 0;
+  background-color: #f8fafc;
+}
+
+.fc td {
+  border: 1px solid #e2e8f0;
+}
+
+.fc-day-today {
+  background-color: #f0f9ff !important;
+}

@@ -3,20 +3,29 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { EventApi } from '@fullcalendar/core';
 
+// Add custom event interface to extend EventApi properties
+export interface CustomEventApi extends EventApi {
+  extendedProps: {
+    isVenueSelected: boolean;
+    venueName?: string;
+  };
+}
+
 interface EventContextType {
-  currentEvent: EventApi | null;
-  setCurrentEvent: (event: EventApi | null) => void;
-  allEvents: EventApi[];
-  setAllEvents: (events: EventApi[]) => void;
+  currentEvent: CustomEventApi | null;
+  setCurrentEvent: (event: CustomEventApi | null) => void;
+  allEvents: CustomEventApi[];
+  setAllEvents: (events: CustomEventApi[]) => void;
+  isEventSelected: boolean;
 }
 
 const EventContext = createContext<EventContextType | undefined>(undefined);
 
 export function EventProvider({ children }: { children: React.ReactNode }) {
-  const [currentEvent, setCurrentEvent] = useState<EventApi | null>(null);
-  const [allEvents, setAllEvents] = useState<EventApi[]>([]);
+  const [currentEvent, setCurrentEvent] = useState<CustomEventApi | null>(null);
+  const [allEvents, setAllEvents] = useState<CustomEventApi[]>([]);
 
-  // Persist events to localStorage whenever they change
+  // Update the localStorage save to include venue properties
   useEffect(() => {
     if (allEvents.length > 0) {
       const eventsToSave = allEvents.map(event => ({
@@ -24,14 +33,26 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
         title: event.title,
         start: event.startStr,
         end: event.endStr,
-        allDay: event.allDay
+        allDay: event.allDay,
+        extendedProps: {
+          isVenueSelected: event.extendedProps.isVenueSelected,
+          venueName: event.extendedProps.venueName
+        }
       }));
       localStorage.setItem('events', JSON.stringify(eventsToSave));
     }
   }, [allEvents]);
 
+  const value = {
+    currentEvent,
+    setCurrentEvent,
+    allEvents,
+    setAllEvents,
+    isEventSelected: currentEvent !== null,
+  };
+
   return (
-    <EventContext.Provider value={{ currentEvent, setCurrentEvent, allEvents, setAllEvents }}>
+    <EventContext.Provider value={value}>
       {children}
     </EventContext.Provider>
   );

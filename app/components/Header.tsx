@@ -28,6 +28,11 @@ export default function Header() {
               </a>
             </li>
             <li>
+              <a href="/venues" className="hover:text-primary-foreground/80 transition-colors">
+                Venues
+              </a>
+            </li>
+            <li>
               <a href="/about" className="hover:text-primary-foreground/80 transition-colors">
                 About
               </a>
