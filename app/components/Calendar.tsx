@@ -26,19 +26,25 @@ const Calendar: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<DateSelectArg | null>(null);
 
   useEffect(() => {
-    // Load events from local storage when the component mounts
-    if (typeof window !== "undefined") {
-      const savedEvents = localStorage.getItem("events");
-      if (savedEvents) {
-        setCurrentEvents(JSON.parse(savedEvents));
-      }
+    if (currentEvents && currentEvents.length > 0) {
+      currentEvents.forEach(event => {
+        console.log("Event Title:", event.title);
+        console.log("Start Date and Time:", event.start);
+        console.log("End Date and Time:", event.end);
+      });
     }
-  }, []);
+  }, [currentEvents]);
 
   useEffect(() => {
-    // Save events to local storage whenever they change
-    if (typeof window !== "undefined") {
-      localStorage.setItem("events", JSON.stringify(currentEvents));
+    if (currentEvents.length > 0) {
+      const eventsToSave = currentEvents.map(event => ({
+        id: event.id,
+        title: event.title,
+        start: event.startStr,
+        end: event.endStr,
+        allDay: event.allDay
+      }));
+      localStorage.setItem('events', JSON.stringify(eventsToSave));
     }
   }, [currentEvents]);
 
@@ -69,19 +75,28 @@ const Calendar: React.FC = () => {
       const calendarApi = selectedDate.view.calendar;
       calendarApi.unselect();
 
-      // Combine date and time correctly
+      // Create new Date objects for start and end times
       const startDate = new Date(selectedDate.start);
+      const endDate = new Date(selectedDate.start);
+
       if (newEventTime) {
         const [hours, minutes] = newEventTime.split(':').map(Number);
-        startDate.setHours(hours, minutes);
+        
+        // Set the hours and minutes for both start and end dates
+        startDate.setHours(hours, minutes, 0); // Set seconds to 0
+        endDate.setHours(hours + 1, minutes, 0); // End time is 1 hour later
+      } else {
+        // If no specific time is set, make it an all-day event
+        startDate.setHours(0, 0, 0);
+        endDate.setHours(23, 59, 59);
       }
 
       const newEvent = {
         id: `${selectedDate.start.toISOString()}-${newEventTitle}`,
         title: newEventTitle,
         start: startDate,
-        end: selectedDate.end,
-        allDay: selectedDate.allDay,
+        end: endDate,
+        allDay: !newEventTime, // Set allDay based on whether time was specified
       };
 
       calendarApi.addEvent(newEvent);
@@ -111,7 +126,11 @@ const Calendar: React.FC = () => {
             eventsSet={(events) => setCurrentEvents(events)} // Update state with current events whenever they change.
             initialEvents={
               typeof window !== "undefined"
-                ? JSON.parse(localStorage.getItem("events") || "[]")
+                ? JSON.parse(localStorage.getItem("events") || "[]").map((event: any) => ({
+                    ...event,
+                    start: new Date(event.start),
+                    end: new Date(event.end)
+                  }))
                 : []
             } // Initial events loaded from local storage.
           />
@@ -120,10 +139,13 @@ const Calendar: React.FC = () => {
 
       {/* Dialog for adding new events */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent aria-describedby="event-form-description">
           <DialogHeader>
             <DialogTitle>Add New Event Details</DialogTitle>
           </DialogHeader>
+          <div id="event-form-description" className="sr-only">
+            Form to add a new calendar event with title and time
+          </div>
           <form className="flex flex-col items-center space-y-4 mb-4" onSubmit={handleAddEvent}>
             <input
               type="text"
