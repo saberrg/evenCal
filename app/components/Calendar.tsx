@@ -23,6 +23,7 @@ import { useRouter } from 'next/navigation';
 // Add the interface for the component props
 interface CalendarProps {
   editable?: boolean;
+  showEvents?: boolean;
 }
 
 // Add these type definitions at the top of the file
@@ -57,7 +58,7 @@ const SAMPLE_EVENTS = [
   }
 ];
 
-const Calendar: React.FC<CalendarProps> = ({ editable = true }) => {
+const Calendar: React.FC<CalendarProps> = ({ editable = true, showEvents = true }) => {
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [newEventTitle, setNewEventTitle] = useState<string>("");
   const [newEventTime, setNewEventTime] = useState<string>("");
@@ -185,15 +186,14 @@ const Calendar: React.FC<CalendarProps> = ({ editable = true }) => {
             eventsSet={(events: EventApi[]) => {
               setAllEvents(events as CustomEventApi[]);
             }}
-            initialEvents={editable 
-              ? (typeof window !== "undefined"
-                  ? JSON.parse(localStorage.getItem("events") || "[]").map((event: any) => ({
-                      ...event,
-                      start: new Date(event.start),
-                      end: new Date(event.end)
-                    }))
-                  : [])
-              : SAMPLE_EVENTS
+            initialEvents={
+              typeof window !== "undefined"
+                ? JSON.parse(localStorage.getItem("events") || "[]").map((event: any) => ({
+                    ...event,
+                    start: new Date(event.start),
+                    end: new Date(event.end)
+                  }))
+                : SAMPLE_EVENTS
             }
             // Add responsive views
             views={{
