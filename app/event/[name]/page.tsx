@@ -1,32 +1,20 @@
-import { notFound } from "next/navigation"
-import { EventInfo } from "@/app/cutom-components/event-info"
+'use client'
 
-// This would normally fetch from an API
-async function getEvent(name: string) {
-  const event = {
-    id: "123",
-    name: "Winter Gala",
-    venueName: "Crystal Ballroom",
-    venueAddress: "123 Main St, City, State",
-    startDateTime: "2024-12-21T19:00",
-    endDateTime: "2024-12-22T00:00",
-    createdBy: "admin",
-    numberOfTickets: 100,
-    ticketPrice: 75,
-    addOns: ["VIP Seating", "Drink Package", "Photo Session"],
-    food: ["Appetizer: Shrimp Cocktail", "Main: Filet Mignon", "Dessert: Chocolate Cake"],
-    isPaid: false,
-    amountBilled: 0,
-    imageUrl: "/placeholder.svg?height=900&width=1600",
-    description: "Join us for an elegant evening of dining and dancing."
+import { useEvents } from '../../context/sEventContext'
+import { EventInfo } from '@/app/cutom-components/event-info'
+import { notFound } from 'next/navigation'
+import { use } from 'react'
+
+export default function EventPage({ params }: { params: { name: string } }) {
+  const unwrappedParams = use(params)
+  const { events } = useEvents()
+  
+  const generateSlug = (name: string) => {
+    return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
   }
   
-  return event
-}
+  const event = events.find(e => generateSlug(e.name) === unwrappedParams.name)
 
-export default async function EventPage({ params }: { params: { name: string } }) {
-  const event = await getEvent(params.name)
-  
   if (!event) {
     notFound()
   }
@@ -45,4 +33,3 @@ export default async function EventPage({ params }: { params: { name: string } }
     </main>
   )
 }
-

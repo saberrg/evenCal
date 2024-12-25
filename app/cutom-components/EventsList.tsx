@@ -16,7 +16,7 @@ export function EventList() {
       {events.map((event) => (
         <Link
           key={event.id}
-          href={`/events/${generateSlug(event.name)}`}
+          href={`/event/${generateSlug(event.name)}`}
           className="group relative bg-[#1e1e2e] text-white p-4 md:p-6 rounded-lg flex items-center justify-between hover:bg-[#1e1e2e]/90 transition-colors"
         >
           <div>
