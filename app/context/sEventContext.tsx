@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState } from 'react';
 import { Event, createNewEvent } from '../object/eventObject';
+import { mockEvents } from './otjer/sampleEvents';
 
 // Define the context type
 interface EventContextType {
@@ -17,6 +18,29 @@ const EventContext = createContext<EventContextType | undefined>(undefined);
 // Create the provider component
 export function EventProvider({ children }: { children: React.ReactNode }) {
   const [events, setEvents] = useState<Event[]>([]);
+  // Fetch events on component mount
+  React.useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        //const fetchedEvents = await getEvents();
+        
+        const fetchedEvents = mockEvents;
+        setEvents(fetchedEvents);
+      } catch (error) {
+        console.error('Failed to fetch events:', error);
+        // Optionally set some error state here
+      }
+    };
+
+    fetchEvents();
+  }, []); // Empty dependency array means this runs once on mount
+
+  // Log events after they have been set
+  React.useEffect(() => {
+    if (events.length > 0) {
+      console.log('THIS IS FROM THE CONTEXT', events[0]);
+    }
+  }, [events]); // Dependency on events to log when they change
 
   /**
    * Adds a new event to the events list

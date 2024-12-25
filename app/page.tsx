@@ -1,26 +1,27 @@
-import Image from "next/image";
-import Calendar from "./components/Calendar";
-import EventsList from "./components/EventsList";
+'use client'
+
+import { useEvents } from "./context/sEventContext";
 
 export default function Home() {
+  const { events } = useEvents();
   return (
-    <>
-      <section className="latest-event">
-        <h2 className="text-2xl font-bold mb-4">Latest Event</h2>
-        {/* Latest event content */}
-      </section>
-      
-      <section className="event-list">
-        <h2 className="text-2xl font-bold mb-4">EVENT LIST</h2>
-        {/* Event list content */}
-      </section>
-    </>
+
+    
+
+
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', minHeight: '100vh' }}>
+      {events.map(event => (
+        <div key={event.eventId}>
+          <p>Venue: {event.venueName}</p>
+          <p>Start: {event.startDateTime}</p>
+          <p>End: {event.endDateTime}</p>
+          <p>Created by: {event.createdBy}</p>
+          <p>Tickets: {event.numberOfTickets}</p>
+          <p>Price: ${event.ticketPrice}</p>
+          <hr/>
+        </div>
+      ))}
+    </div>
   )
 }
 
-
-//return (
-  //   <div>
-  //     <Calendar editable={false} />
-  //   </div>
-  // );
