@@ -6,14 +6,13 @@ import { notFound } from 'next/navigation'
 import { use } from 'react'
 
 export default function EventPage({ params }: { params: { name: string } }) {
-  const unwrappedParams = use(params)
   const { events } = useEvents()
   
   const generateSlug = (name: string) => {
     return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
   }
   
-  const event = events.find(e => generateSlug(e.name) === unwrappedParams.name)
+  const event = events.find(e => generateSlug(e.name) === params.name)
 
   if (!event) {
     notFound()
