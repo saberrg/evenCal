@@ -13,11 +13,11 @@ export function HeroSection({ imageUrl, title, venue, date, time }: HeroSectionP
         {/* Add your hero image here */}
         <div className="absolute inset-0 bg-black/60" />
       </div>
-      <div className="relative h-full flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl md:text-6xl font-bold">{title}</h1>
-          <p className="text-xl md:text-2xl">{venue}</p>
-          <p className="text-lg md:text-xl">
+      <div className="relative h-full flex items-center justify-start pl-8">
+        <div className="text-left space-y-2">
+          <h1 className="text-2xl md:text-3xl font-bold">{title}</h1>
+          <p className="text-lg md:text-xl">{venue}</p>
+          <p className="text-md md:text-lg">
             {date} • {time}
           </p>
         </div>
