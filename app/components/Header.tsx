@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-[#1e1e2e] text-white">
+    <header className="sticky top-0 z-50 w-full bg-[#1e1e2e] text-white">
       <div className="container flex h-16 items-center justify-between px-4">
         <Link href="/" className="text-2xl font-bold tracking-wider">
           Dore Hami
