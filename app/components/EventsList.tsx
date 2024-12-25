@@ -1,12 +1,11 @@
+'use client';
+
 import React from 'react';
-import { EventApi, formatDate } from '@fullcalendar/core';
-import { CustomEventApi } from '@/types/calendar';
+import { useEvents } from '@/app/context/sEventContext';
 
-interface EventsListProps {
-  events: CustomEventApi[];
-}
+const EventsList: React.FC = () => {
+  const { events } = useEvents();
 
-const EventsList: React.FC<EventsListProps> = ({ events }) => {
   return (
     <div className="mt-6">
       <h3 className="text-lg font-semibold mb-3">My Events</h3>
@@ -14,30 +13,33 @@ const EventsList: React.FC<EventsListProps> = ({ events }) => {
         {events.length > 0 ? (
           events.map((event) => (
             <div 
-              key={event.id} 
+              key={event.eventId} 
               className="p-3 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors"
             >
-              <h4 className="font-medium text-gray-900">{event.title}</h4>
+              <h4 className="font-medium text-gray-900">{event.venueName}</h4>
               <p className="text-sm text-gray-600">
-                {formatDate(event.start!, {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                  hour: 'numeric',
-                  minute: '2-digit',
-                  meridiem: true
-                })}
+                Start: {new Date(event.startDateTime).toLocaleString()}
               </p>
-              {!event.allDay && (
-                <p className="text-sm text-gray-600">
-                  Duration: {event.end ? 
-                    `${Math.round((event.end.getTime() - event.start!.getTime()) / (1000 * 60))} minutes` 
-                    : '1 hour'}
+              <p className="text-sm text-gray-600">
+                End: {new Date(event.endDateTime).toLocaleString()}
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                Created by: {event.createdBy}
+              </p>
+              <p className="text-sm text-gray-600">
+                Tickets Available: {event.numberOfTickets}
+              </p>
+              <p className="text-sm text-gray-600">
+                Price: ${event.ticketPrice}
+              </p>
+              {event.addOns.length > 0 && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Add-ons: {event.addOns.join(', ')}
                 </p>
               )}
-              {event.extendedProps.venueName && (
-                <p className="text-sm text-gray-600 mt-1">
-                  Venue: {event.extendedProps.venueName}
+              {event.food.length > 0 && (
+                <p className="text-sm text-gray-600">
+                  Food Options: {event.food.join(', ')}
                 </p>
               )}
             </div>

@@ -248,7 +248,7 @@ const Calendar: React.FC<CalendarProps> = ({ editable = true, showEvents = true 
                 )}
               </div>
 
-              <EventsList events={allEvents} />
+              <EventsList/>
             </div>
           </div>
         )}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEvent } from '../context/EventContext';
+import { useEvents } from '../context/sEventContext';
 import { useVenue } from '../context/VenueContext';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -13,9 +13,22 @@ function slugify(text: string) {
 }
 
 export default function VenuePage() {
-  const { currentEvent } = useEvent();
+  const { events, updateEvent } = useEvents();
   const { venues } = useVenue();
   const router = useRouter();
+
+  // Get the current event (assuming it's the last one in the list)
+  const currentEvent = events[events.length - 1];
+
+  const handleVenueSelect = (venueName: string) => {
+    if (currentEvent) {
+      const updatedEvent = {
+        ...currentEvent,
+        venueName: venueName
+      };
+      updateEvent(updatedEvent);
+    }
+  };
 
   const handleMenuClick = (e: React.MouseEvent, venueName: string) => {
     e.stopPropagation();
@@ -25,13 +38,14 @@ export default function VenuePage() {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-6">
-        {currentEvent ? `Select Venue for: ${currentEvent.title}` : 'Available Venues'}
+        {currentEvent ? `Select Venue for: ${currentEvent.venueName || 'New Event'}` : 'Available Venues'}
       </h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {venues.map((venue) => (
           <div 
             key={venue.id}
             className="border rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => handleVenueSelect(venue.name)}
           >
             {venue.images.length > 0 && (
               <div className="relative h-48 mb-4">

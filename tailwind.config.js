@@ -23,6 +23,12 @@ module.exports = {
           foreground: "hsl(var(--primary-foreground))",
         },
       },
+      width: {
+        'layout': '1440px',
+      },
+      height: {
+        'layout': '1028px',
+      },
     },
   },
   plugins: [],

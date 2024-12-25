@@ -3,9 +3,8 @@ import "./globals.css";
 import { Rozha_One } from "next/font/google";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import { EventProvider } from './context/EventContext';
 import { VenueProvider } from './context/VenueContext';
-
+import { EventProvider } from './context/sEventContext';
 const rozhaOne = Rozha_One({
   weight: ["400"],
   subsets: ["latin"],
