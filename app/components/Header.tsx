@@ -1,33 +1,54 @@
-import Link from "next/link";
+'use client'
 
-export default function Header() {
+import Link from 'next/link'
+import { Menu } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+
+export function Header() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-[#1e1e2e] text-white px-6 py-4 flex justify-between items-center">
-        <Link href="/" className="text-4xl font-bold tracking-wider">
+    <header className="sticky top-0 z-50 w-full border-b bg-[#1e1e2e] text-white">
+      <div className="container flex h-16 items-center justify-between px-4">
+        <Link href="/" className="text-2xl font-bold tracking-wider">
           Dore Hami
         </Link>
-        <nav className="space-x-6">
-          <Link 
-            href="/events" 
-            className="text-2xl hover:text-gray-200 transition-colors"
-          >
-            Events
-          </Link>
-          <Link 
-            href="/venues" 
-            className="text-2xl hover:text-gray-200 transition-colors"
-          >
+        
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-6">
+          <Link href="/venues" className="hover:text-[#f6e47c] transition-colors">
             Venues
           </Link>
-          <Link 
-            href="/plan-event" 
-            className="text-2xl hover:text-gray-200 transition-colors"
-          >
+          <Link href="/plan-event" className="hover:text-[#f6e47c] transition-colors">
             Plan Event
           </Link>
+          <Link href="/about" className="hover:text-[#f6e47c] transition-colors">
+            About
+          </Link>
         </nav>
-      </header>
-    </div>
-  );
+
+        {/* Mobile Navigation */}
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" className="md:hidden" size="icon">
+              <Menu className="h-6 w-6" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="bg-[#1e1e2e] text-white">
+            <nav className="flex flex-col gap-4">
+              <Link href="/venues" className="text-lg hover:text-[#f6e47c] transition-colors">
+                Venues
+              </Link>
+              <Link href="/plan-event" className="text-lg hover:text-[#f6e47c] transition-colors">
+                Plan Event
+              </Link>
+              <Link href="/about" className="text-lg hover:text-[#f6e47c] transition-colors">
+                About
+              </Link>
+            </nav>
+          </SheetContent>
+        </Sheet>
+      </div>
+    </header>
+  )
 }
