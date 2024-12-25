@@ -1,7 +1,7 @@
 'use client'
 
 import { useEvent } from "../context/EventContext";
-import Calendar from "../components/Calendar";
+import Calendar from "../cutom-components/Calendar";
 
 export default function CalendarPage() {
   const { allEvents: events } = useEvent();

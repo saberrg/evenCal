@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { Header } from './components/Header'
-import { Footer } from './components/Footer'
+import { Header } from './cutom-components/Header'
+import { Footer } from './cutom-components/Footer'
 import { EventProvider } from './context/sEventContext'
 import './globals.css'
 

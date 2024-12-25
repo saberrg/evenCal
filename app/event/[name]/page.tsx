@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { EventInfo } from "@/app/components/event-info"
+import { EventInfo } from "@/app/cutom-components/event-info"
 
 // This would normally fetch from an API
 async function getEvent(name: string) {

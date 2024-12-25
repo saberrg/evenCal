@@ -7,12 +7,16 @@ import Link from 'next/link'
 export function EventList() {
   const { events } = useEvents()
 
+  const generateSlug = (name: string) => {
+    return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+  }
+
   return (
     <div className="grid gap-4">
       {events.map((event) => (
         <Link
           key={event.id}
-          href={`/events/${event.id}`}
+          href={`/events/${generateSlug(event.name)}`}
           className="group relative bg-[#1e1e2e] text-white p-4 md:p-6 rounded-lg flex items-center justify-between hover:bg-[#1e1e2e]/90 transition-colors"
         >
           <div>

@@ -1,7 +1,7 @@
 'use client'
 
-import { HeroSection } from './components/hero-section'
-import { EventList } from './components/EventsList'
+import { HeroSection } from './cutom-components/hero-section'
+import { EventList } from './cutom-components/EventsList'
 import { useEvents } from './context/sEventContext'
 
 export default function Home() {
