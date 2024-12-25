@@ -1,4 +1,4 @@
-import { cn, formatDate } from "@/lib/utils"
+import { cn, formatDate, generateSlug } from "@/lib/utils"
 import { Event } from "@/app/types/event"
 import Image from "next/image"
 import Link from "next/link"
@@ -20,7 +20,7 @@ export function EventInfo({ event }: EventInfoProps) {
       </div>
       
       <Link 
-        href={`/event/${event.name}/rsvp`}
+        href={`/event/${generateSlug(event.name)}/rsvp`}
         className="block w-full max-w-xs mx-auto mb-12 py-4 text-center text-2xl text-white bg-[#6f0c0c] rounded-full hover:bg-[#6f0c0c]/90 transition-colors"
       >
         RSVP
@@ -36,7 +36,7 @@ export function EventInfo({ event }: EventInfoProps) {
         <section>
           <h2 className="text-2xl font-serif mb-4">Menu</h2>
           <ul className="text-lg space-y-2">
-            {event.food.map((item: string) => (
+            {event.food.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
