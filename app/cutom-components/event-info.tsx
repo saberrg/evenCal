@@ -1,4 +1,4 @@
-import { cn, formatDate, generateSlug } from "@/lib/utils"
+import { formatDate, generateSlug } from "@/lib/utils"
 import { Event } from "@/app/types/event"
 import Image from "next/image"
 import Link from "next/link"
