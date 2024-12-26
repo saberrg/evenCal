@@ -13,23 +13,23 @@ export function Header() {
           {/* Logo Section - Left */}
           <div className="w-1/3">
             <div className="relative h-10">
-              <Link href="/" className="absolute inset-0 text-4xl font-bold text-white whitespace-nowrap">
+              <Link href="/" className="absolute inset-0 text-4xl font-bold text-white whitespace-nowrap font-[--font-rozha-one]">
                 Dore Hami
               </Link>
             </div>
           </div>
 
           {/* Desktop Navigation - Right */}
-          <div className="w-1/3 hidden md:flex justify-end">
+          <div className="w-1/3 hidden md:flex justify-end items-center gap-8">
             {[
               { href: '/venues', label: 'Venues' },
               { href: '/plan-event', label: 'Plan Event' },
               { href: '/about', label: 'About' }
             ].map((item) => (
-              <div key={item.href} className="relative h-6 w-24 ml-8">
+              <div key={item.href} className="relative">
                 <Link
                   href={item.href}
-                  className="absolute inset-0 text-white hover:text-[#f6e47c] transition-colors flex items-center justify-end whitespace-nowrap"
+                  className="text-white hover:text-[#f6e47c] transition-colors whitespace-nowrap"
                 >
                   {item.label}
                 </Link>

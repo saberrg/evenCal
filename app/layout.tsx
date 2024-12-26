@@ -1,11 +1,15 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Rozha_One } from 'next/font/google'
 import { Header } from './cutom-components/Header'
 import { Footer } from './cutom-components/Footer'
 import { EventProvider } from './context/sEventContext'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const rozhaOne = Rozha_One({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-rozha-one',
+})
 
 export const metadata: Metadata = {
   title: 'Dore Hami Events',
@@ -19,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} flex flex-col min-h-screen`}>
+      <body className={`${rozhaOne.variable} flex flex-col min-h-screen`}>
         <EventProvider>
           <Header />
           <main className="flex-grow">
