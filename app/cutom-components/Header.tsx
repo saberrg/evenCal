@@ -11,7 +11,7 @@ export function Header() {
       <div className="container mx-auto px-4 py-6">
         <nav className="flex justify-between items-center">
           {/* Logo Section - Left */}
-          <div className="w-1/3">
+          <div className="flex-1">
             <div className="relative h-10">
               <Link href="/" className="absolute inset-0 text-4xl font-bold text-white whitespace-nowrap font-[--font-rozha-one]">
                 Dore Hami
@@ -20,7 +20,7 @@ export function Header() {
           </div>
 
           {/* Desktop Navigation - Right */}
-          <div className="w-1/3 hidden md:flex justify-end items-center gap-8">
+          <div className="hidden md:flex flex-1 justify-end items-center gap-8">
             {[
               { href: '/venues', label: 'Venues' },
               { href: '/plan-event', label: 'Plan Event' },
