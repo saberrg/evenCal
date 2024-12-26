@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 interface HeroSectionProps {
   imageUrl: string
   title: string
@@ -10,7 +12,13 @@ export function HeroSection({ imageUrl, title, venue, date, time }: HeroSectionP
   return (
     <div className="relative h-[60vh] bg-[#1e1e2e] text-white">
       <div className="absolute inset-0">
-        {/* Add your hero image here */}
+        <Image 
+          src={imageUrl} 
+          alt="Hero background" 
+          fill
+          className="object-cover"
+          priority
+        />
         <div className="absolute inset-0 bg-black/60" />
       </div>
       <div className="relative h-full flex items-center justify-start pl-8">
