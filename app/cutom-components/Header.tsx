@@ -51,6 +51,12 @@ export function Header() {
             
             {user ? (
               <div className="flex items-center gap-4">
+                <Link
+                  href="/settings"
+                  className="text-white hover:text-[#f6e47c] transition-colors whitespace-nowrap"
+                >
+                  Settings
+                </Link>
                 <span className="text-white text-sm">
                   Welcome, {user.user_metadata?.name || user.email}
                 </span>
@@ -69,7 +75,7 @@ export function Header() {
                 href="/account"
                 className="text-white hover:text-[#f6e47c] transition-colors whitespace-nowrap"
               >
-                Sign In
+                Account
               </Link>
             )}
           </div>
@@ -96,6 +102,9 @@ export function Header() {
                 {user ? (
                   <>
                     <div className="border-t border-[#3a3a4e] pt-4">
+                      <Link href="/settings" className="text-lg hover:text-[#f6e47c] transition-colors block mb-4">
+                        Settings
+                      </Link>
                       <p className="text-sm text-gray-300 mb-2">
                         Welcome, {user.user_metadata?.name || user.email}
                       </p>

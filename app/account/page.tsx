@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Mail, User, Calendar, Key } from 'lucide-react'
+import { Mail, Key } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { useAuth } from '@/app/context/AuthContext'
@@ -22,19 +22,11 @@ const otpSchema = z.object({
   otp: z.string().length(6, 'Please enter the 6-digit code'),
 })
 
-const signUpSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  dateOfBirth: z.string().min(1, 'Date of birth is required'),
-})
-
 type EmailForm = z.infer<typeof emailSchema>
 type OtpForm = z.infer<typeof otpSchema>
-type SignUpForm = z.infer<typeof signUpSchema>
 
 export default function AccountPage() {
   const { user, loading } = useAuth()
-  const [isSignUp, setIsSignUp] = useState(false)
   const [isOtpSent, setIsOtpSent] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [userEmail, setUserEmail] = useState('')
@@ -51,15 +43,6 @@ export default function AccountPage() {
     resolver: zodResolver(otpSchema),
     defaultValues: {
       otp: '',
-    },
-  })
-
-  const signUpForm = useForm<SignUpForm>({
-    resolver: zodResolver(signUpSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      dateOfBirth: '',
     },
   })
 
@@ -148,40 +131,6 @@ export default function AccountPage() {
     verifyOtp(data.otp)
   }
 
-  const onSignUpSubmit = async (data: SignUpForm) => {
-    setIsLoading(true)
-    try {
-      // First send OTP
-      const { error } = await supabase.auth.signInWithOtp({
-        email: data.email,
-        options: {
-          shouldCreateUser: true,
-          // Configure to send OTP token instead of magic link
-          emailRedirectTo: undefined,
-          data: {
-            name: data.name,
-            date_of_birth: data.dateOfBirth,
-            type: 'otp'
-          },
-        },
-      })
-
-      if (error) {
-        toast.error(error.message)
-      } else {
-        setUserEmail(data.email)
-        setIsOtpSent(true)
-        // Reset the OTP form to ensure clean input and remove any carried over values
-        otpForm.reset({ otp: '' })
-        toast.success('Verification code sent to your email!')
-      }
-    } catch (error) {
-      toast.error('Failed to send verification code')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   const handleBackToEmail = () => {
     setIsOtpSent(false)
     setUserEmail('')
@@ -198,17 +147,13 @@ export default function AccountPage() {
           <h2 className="text-3xl font-semibold mb-2 text-[#1e1e2e]">
             {isOtpSent 
               ? 'Enter Verification Code' 
-              : isSignUp 
-                ? 'Create Account' 
-                : 'Welcome Back'
+              : 'Welcome'
             }
           </h2>
           <p className="text-[#1e1e2e] text-lg">
             {isOtpSent 
               ? `We sent a 6-digit code to ${userEmail}` 
-              : isSignUp 
-                ? 'Join our community of event enthusiasts' 
-                : 'Sign in to your account to continue'
+              : ''
             }
           </p>
         </div>
@@ -273,83 +218,6 @@ export default function AccountPage() {
                 </div>
               </form>
             </Form>
-          ) : isSignUp ? (
-            // Sign Up Form
-            <Form {...signUpForm} key="signup-form">
-              <form onSubmit={signUpForm.handleSubmit(onSignUpSubmit)} className="space-y-6">
-                <FormField
-                  control={signUpForm.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">Username</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                          <Input
-                            {...field}
-                            className="pl-10 bg-[#1e1e2e] border-[#3a3a4e] text-white placeholder:text-gray-400 focus:border-[#f6e47c] focus:ring-[#f6e47c]"
-                            placeholder="Enter your username"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={signUpForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">Email Address</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                          <Input
-                            {...field}
-                            type="email"
-                            className="pl-10 bg-[#1e1e2e] border-[#3a3a4e] text-white placeholder:text-gray-400 focus:border-[#f6e47c] focus:ring-[#f6e47c]"
-                            placeholder="Enter your email"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={signUpForm.control}
-                  name="dateOfBirth"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">Date of Birth</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                          <Input
-                            {...field}
-                            type="date"
-                            className="pl-10 bg-[#1e1e2e] border-[#3a3a4e] text-white placeholder:text-gray-400 focus:border-[#f6e47c] focus:ring-[#f6e47c]"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-[#f6e47c] text-[#1e1e2e] hover:bg-[#e6d46c] font-semibold py-3 disabled:opacity-50"
-                >
-                  {isLoading ? 'Sending Code...' : 'Create Account'}
-                </Button>
-              </form>
-            </Form>
           ) : (
             // Sign In Form
             <Form {...emailForm} key="email-form">
@@ -381,25 +249,10 @@ export default function AccountPage() {
                   disabled={isLoading}
                   className="w-full bg-[#f6e47c] text-[#1e1e2e] hover:bg-[#e6d46c] font-semibold py-3 disabled:opacity-50"
                 >
-                  {isLoading ? 'Sending Code...' : 'Send Sign In Code'}
+                  {isLoading ? 'Sending Code...' : 'Send Verification Code'}
                 </Button>
               </form>
             </Form>
-          )}
-
-          {/* Toggle between sign in and sign up */}
-          {!isOtpSent && (
-            <div className="mt-6 text-center">
-              <p className="text-gray-300">
-                {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-                <button
-                  onClick={() => setIsSignUp(!isSignUp)}
-                  className="text-[#f6e47c] hover:text-[#e6d46c] font-semibold"
-                >
-                  {isSignUp ? 'Sign in' : 'Sign up'}
-                </button>
-              </p>
-            </div>
           )}
         </div>
       </div>
