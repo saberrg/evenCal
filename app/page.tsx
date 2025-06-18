@@ -2,10 +2,10 @@
 
 import { HeroSection } from './cutom-components/hero-section'
 import { EventList } from './cutom-components/EventsList'
-import { useEvents } from './context/sEventContext'
+import { useEventContext } from './context/sEventContext'
 
 export default function Home() {
-  const { events } = useEvents()
+  const { events } = useEventContext()
 
   const featuredEvent = events[0]
 
@@ -24,7 +24,7 @@ export default function Home() {
     <div className="flex flex-col">
       {featuredEvent && (
         <HeroSection
-          imageUrl={featuredEvent.imageUrl}
+          imageUrl={featuredEvent.imageUrl || 'https://via.placeholder.com/800x400/e5e7eb/6b7280?text=Event+Image'}
           title={featuredEvent.name}
           venue={featuredEvent.venueName}
           date={formatDate(featuredEvent.startDateTime)}

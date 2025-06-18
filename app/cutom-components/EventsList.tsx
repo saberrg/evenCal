@@ -1,11 +1,11 @@
 'use client'
 
-import { useEvents } from '../context/sEventContext'
+import { useEventContext } from '../context/sEventContext'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
 export function EventList() {
-  const { events } = useEvents()
+  const { events } = useEventContext()
 
   const generateSlug = (name: string) => {
     return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
