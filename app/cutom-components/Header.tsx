@@ -1,11 +1,24 @@
 'use client'
 
 import Link from 'next/link'
-import { Menu } from 'lucide-react'
+import { Menu, LogOut, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { useAuth } from '@/app/context/AuthContext'
+import { toast } from 'sonner'
 
 export function Header() {
+  const { user, signOut } = useAuth()
+
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+      toast.success('Signed out successfully')
+    } catch (error) {
+      toast.error('Failed to sign out')
+    }
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full bg-[#1e1e2e]">
       <div className="container mx-auto px-4 py-6">
@@ -24,7 +37,7 @@ export function Header() {
             {[
               { href: '/venues', label: 'Venues' },
               { href: '/plan-event', label: 'Plan Event' },
-              { href: '/about', label: 'About' }
+              { href: '/about', label: 'About' },
             ].map((item) => (
               <div key={item.href} className="relative">
                 <Link
@@ -35,6 +48,30 @@ export function Header() {
                 </Link>
               </div>
             ))}
+            
+            {user ? (
+              <div className="flex items-center gap-4">
+                <span className="text-white text-sm">
+                  Welcome, {user.user_metadata?.name || user.email}
+                </span>
+                <Button
+                  onClick={handleSignOut}
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:text-[#f6e47c] hover:bg-[#3a3a4e]"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <Link
+                href="/account"
+                className="text-white hover:text-[#f6e47c] transition-colors whitespace-nowrap"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
 
           {/* Mobile Navigation */}
@@ -56,6 +93,27 @@ export function Header() {
                 <Link href="/about" className="text-lg hover:text-[#f6e47c] transition-colors">
                   About
                 </Link>
+                {user ? (
+                  <>
+                    <div className="border-t border-[#3a3a4e] pt-4">
+                      <p className="text-sm text-gray-300 mb-2">
+                        Welcome, {user.user_metadata?.name || user.email}
+                      </p>
+                      <Button
+                        onClick={handleSignOut}
+                        variant="ghost"
+                        className="w-full justify-start text-white hover:text-[#f6e47c] hover:bg-[#3a3a4e]"
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Sign Out
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <Link href="/account" className="text-lg hover:text-[#f6e47c] transition-colors">
+                    Sign In
+                  </Link>
+                )}
               </nav>
             </SheetContent>
           </Sheet>
