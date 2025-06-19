@@ -90,7 +90,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-center mb-4">
             <Link
               href="/"
-              className="flex items-center text-[#f6e47c] hover:text-[#e6d46c] transition-colors mr-4"
+              className="flex items-center text-[#1e1e2e] hover:text-[#2a2a3e] transition-colors mr-4"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back to Home
