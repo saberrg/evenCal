@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -6,13 +5,14 @@ import { useAuth } from '@/app/context/AuthContext'
 import { DraftEvents } from './draftEvents'
 import { PastEvents } from './pastEvents'
 import { Tickets } from './tickets'
-import { Calendar, Clock, Ticket } from 'lucide-react'
+import { PublishedEvents } from './publishedEvents'
+import { Calendar, Clock, Ticket, CalendarCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
 export function UserEvents() {
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState<'drafts' | 'past' | 'tickets'>('drafts')
+  const [activeTab, setActiveTab] = useState<'drafts' | 'past' | 'tickets' | 'published'>('drafts')
   const [userProfileId, setUserProfileId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -81,6 +81,12 @@ export function UserEvents() {
       description: 'Events you\'re planning'
     },
     {
+      id: 'published' as const,
+      label: 'Published Events',
+      icon: CalendarCheck,
+      description: 'Your live events'
+    },
+    {
       id: 'past' as const,
       label: 'Past Events',
       icon: Clock,
@@ -131,6 +137,7 @@ export function UserEvents() {
       {/* Tab Content */}
       <div className="bg-[#2a2a3e] rounded-lg p-6 shadow-xl border border-[#3a3a4e]">
         {activeTab === 'drafts' && <DraftEvents userId={userProfileId} />}
+        {activeTab === 'published' && <PublishedEvents userId={userProfileId} />}
         {activeTab === 'past' && <PastEvents userId={userProfileId} />}
         {activeTab === 'tickets' && <Tickets userId={userProfileId} />}
       </div>
