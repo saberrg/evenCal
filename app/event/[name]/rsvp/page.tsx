@@ -7,7 +7,7 @@ import * as z from "zod"
 import { FormInput } from "@/app/cutom-components/ui/form-input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/app/cutom-components/ui/button"
-import { useEvents } from '../../../context/sEventContext'
+import { useEventContext } from '../../../context/sEventContext'
 import { generateSlug } from "@/lib/utils"
 
 const formSchema = z.object({
@@ -21,7 +21,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>
 
 export default function RsvpPage({ params }: { params: Promise<{ name: string }> }) {
-    const { events } = useEvents()
+    const { events } = useEventContext()
     const resolvedParams = use(params)
     const event = events.find(e => generateSlug(e.name) === resolvedParams.name)
   

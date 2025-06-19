@@ -1,13 +1,13 @@
 'use client'
 
-import { useEvents } from '../../context/sEventContext'
+import { useEventContext } from '../../context/sEventContext'
 import { EventInfo } from '@/app/cutom-components/event-info'
 import { generateSlug } from '@/lib/utils'
 import { notFound } from 'next/navigation'
 import { use } from 'react'
 
 export default function EventPage({ params }: { params: Promise<{ name: string }> }) {
-  const { events } = useEvents()
+  const { events } = useEventContext()
   const resolvedParams = use(params)
   const event = events.find(e => generateSlug(e.name) === resolvedParams.name)
 
