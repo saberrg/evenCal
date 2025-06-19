@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Calendar, Save, Send, ArrowLeft, ImageIcon, Tag, MapPin, Clock, Users, DollarSign } from 'lucide-react'
+import { Calendar, Save, Send, ArrowLeft, ImageIcon, Tag, MapPin, Clock, Users, DollarSign, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { useAuth } from '@/app/context/AuthContext'
@@ -98,6 +98,10 @@ export default function PlanPage() {
   
   const [isLoading, setIsLoading] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
+  const [featuredImage, setFeaturedImage] = useState<File | null>(null)
+  const [featuredImagePreview, setFeaturedImagePreview] = useState<string>('')
+  const [additionalImages, setAdditionalImages] = useState<File[]>([])
+  const [additionalImagePreviews, setAdditionalImagePreviews] = useState<string[]>([])
 
   const form = useForm<EventForm>({
     resolver: zodResolver(eventSchema),
@@ -120,6 +124,51 @@ export default function PlanPage() {
       ticket_price: undefined,
     },
   })
+
+  // Image upload handlers
+  const handleFeaturedImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setFeaturedImage(file)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setFeaturedImagePreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleAdditionalImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    setAdditionalImages(files)
+    
+    // Create preview URLs
+    const previews: string[] = []
+    files.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        previews.push(e.target?.result as string)
+        if (previews.length === files.length) {
+          setAdditionalImagePreviews(previews)
+        }
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const removeFeaturedImage = () => {
+    setFeaturedImage(null)
+    setFeaturedImagePreview('')
+    const input = document.getElementById('featured-image') as HTMLInputElement
+    if (input) input.value = ''
+  }
+
+  const removeAdditionalImage = (index: number) => {
+    const newImages = additionalImages.filter((_, i) => i !== index)
+    const newPreviews = additionalImagePreviews.filter((_, i) => i !== index)
+    setAdditionalImages(newImages)
+    setAdditionalImagePreviews(newPreviews)
+  }
 
   // Redirect to account page if not authenticated
   useEffect(() => {
@@ -166,16 +215,21 @@ export default function PlanPage() {
           end_datetime: endDateTime,
           timezone: data.timezone || 'UTC',
           venue_id: data.venue_id || '',
-          capacity: data.capacity || undefined,
+          capacity: data.capacity,
           is_public: data.is_public ?? true,
           requires_approval: data.requires_approval ?? false,
-          min_age: data.min_age || undefined,
-          max_age: data.max_age || undefined,
+          min_age: data.min_age,
+          max_age: data.max_age,
           visibility: data.visibility || 'public',
           banner_image_url: data.banner_image_url || '',
           tags: Array.isArray(data.tags) ? data.tags.join(', ') : '',
-          ticket_price: data.ticket_price || undefined,
+          ticket_price: data.ticket_price,
         })
+        
+        // Load existing image if any
+        if (data.banner_image_url) {
+          setFeaturedImagePreview(data.banner_image_url)
+        }
       }
     } catch (error) {
       toast.error('Failed to load event for editing')
@@ -257,7 +311,7 @@ export default function PlanPage() {
         max_age: data.max_age || null,
         status: status,
         visibility: data.visibility,
-        banner_image_url: data.banner_image_url || null,
+        banner_image_url: featuredImagePreview || data.banner_image_url || null,
         tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : null,
         ticket_price: data.ticket_price || null,
         published_at: status === 'published' ? new Date().toISOString() : null,
@@ -381,6 +435,7 @@ export default function PlanPage() {
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value || ''}
                         className="bg-[#1e1e2e] border-[#3a3a4e] text-white placeholder:text-gray-400 focus:border-[#f6e47c] focus:ring-[#f6e47c]"
                         placeholder="Enter event title"
                       />
@@ -399,6 +454,7 @@ export default function PlanPage() {
                     <FormControl>
                       <textarea
                         {...field}
+                        value={field.value || ''}
                         rows={4}
                         className="flex w-full rounded-md border border-[#3a3a4e] bg-[#1e1e2e] px-3 py-2 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#f6e47c] focus:border-[#f6e47c] disabled:cursor-not-allowed disabled:opacity-50"
                         placeholder="Provide a detailed description of your event"
@@ -418,6 +474,7 @@ export default function PlanPage() {
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value || ''}
                         className="bg-[#1e1e2e] border-[#3a3a4e] text-white placeholder:text-gray-400 focus:border-[#f6e47c] focus:ring-[#f6e47c]"
                         placeholder="Brief description (500 characters max)"
                         maxLength={500}
@@ -446,6 +503,7 @@ export default function PlanPage() {
                       <FormControl>
                         <Input
                           {...field}
+                          value={field.value || ''}
                           type="datetime-local"
                           className="bg-[#1e1e2e] border-[#3a3a4e] text-white focus:border-[#f6e47c] focus:ring-[#f6e47c]"
                         />
@@ -464,6 +522,7 @@ export default function PlanPage() {
                       <FormControl>
                         <Input
                           {...field}
+                          value={field.value || ''}
                           type="datetime-local"
                           className="bg-[#1e1e2e] border-[#3a3a4e] text-white focus:border-[#f6e47c] focus:ring-[#f6e47c]"
                         />
@@ -480,7 +539,7 @@ export default function PlanPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-white">Timezone</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="bg-[#1e1e2e] border-[#3a3a4e] text-white focus:border-[#f6e47c] focus:ring-[#f6e47c]">
                           <SelectValue placeholder="Select timezone" />
@@ -513,7 +572,7 @@ export default function PlanPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-white">Venue</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="bg-[#1e1e2e] border-[#3a3a4e] text-white focus:border-[#f6e47c] focus:ring-[#f6e47c]">
                           <SelectValue placeholder="Select a venue" />
@@ -541,6 +600,7 @@ export default function PlanPage() {
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value || ''}
                         type="number"
                         min="1"
                         className="bg-[#1e1e2e] border-[#3a3a4e] text-white placeholder:text-gray-400 focus:border-[#f6e47c] focus:ring-[#f6e47c]"
@@ -570,6 +630,7 @@ export default function PlanPage() {
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value || ''}
                         type="number"
                         min="0"
                         step="0.01"
@@ -601,6 +662,7 @@ export default function PlanPage() {
                       <FormControl>
                         <Input
                           {...field}
+                          value={field.value || ''}
                           type="number"
                           min="0"
                           className="bg-[#1e1e2e] border-[#3a3a4e] text-white placeholder:text-gray-400 focus:border-[#f6e47c] focus:ring-[#f6e47c]"
@@ -622,6 +684,7 @@ export default function PlanPage() {
                       <FormControl>
                         <Input
                           {...field}
+                          value={field.value || ''}
                           type="number"
                           min="0"
                           className="bg-[#1e1e2e] border-[#3a3a4e] text-white placeholder:text-gray-400 focus:border-[#f6e47c] focus:ring-[#f6e47c]"
@@ -649,7 +712,7 @@ export default function PlanPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-white">Event Visibility</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="bg-[#1e1e2e] border-[#3a3a4e] text-white focus:border-[#f6e47c] focus:ring-[#f6e47c]">
                           <SelectValue placeholder="Select visibility" />
@@ -731,20 +794,44 @@ export default function PlanPage() {
                     <FormLabel className="text-white">Featured Image</FormLabel>
                     <FormControl>
                       <div className="space-y-4">
-                        <div 
-                          className="border-2 border-dashed border-[#3a3a4e] rounded-lg p-6 text-center hover:border-[#f6e47c] transition-colors cursor-pointer"
-                          onClick={() => document.getElementById('featured-image')?.click()}
-                        >
-                          <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                          <p className="text-white mb-2">Upload Featured Image</p>
-                          <p className="text-sm text-gray-400 mb-4">Drag and drop or click to select (Max 1 image)</p>
-                          <Input
-                            id="featured-image"
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                          />
-                        </div>
+                        {featuredImagePreview ? (
+                          <div className="relative">
+                            <img 
+                              src={featuredImagePreview} 
+                              alt="Featured image preview" 
+                              className="w-full h-48 object-cover rounded-lg border border-[#3a3a4e]"
+                            />
+                            <button
+                              type="button"
+                              onClick={removeFeaturedImage}
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div 
+                            className="border-2 border-dashed border-[#3a3a4e] rounded-lg p-6 text-center hover:border-[#f6e47c] transition-colors cursor-pointer"
+                            onClick={() => document.getElementById('featured-image')?.click()}
+                          >
+                            <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                            <p className="text-white mb-2">Upload Featured Image</p>
+                            <p className="text-sm text-gray-400 mb-4">Drag and drop or click to select (Max 1 image)</p>
+                          </div>
+                        )}
+                        <Input
+                          id="featured-image"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFeaturedImageChange}
+                          className="hidden"
+                        />
+                        {/* <Input
+                          {...field}
+                          value={field.value || ''}
+                          placeholder="Or enter image URL"
+                          className="bg-[#1e1e2e] border-[#3a3a4e] text-white placeholder:text-gray-400 focus:border-[#f6e47c] focus:ring-[#f6e47c]"
+                        /> */}
                       </div>
                     </FormControl>
                     <div className="text-sm text-gray-400">
@@ -758,18 +845,41 @@ export default function PlanPage() {
               {/* Additional Images Upload */}
               <div>
                 <FormLabel className="text-white">Additional Images</FormLabel>
-                <div 
-                  className="mt-2 border-2 border-dashed border-[#3a3a4e] rounded-lg p-6 text-center hover:border-[#f6e47c] transition-colors cursor-pointer"
-                  onClick={() => document.getElementById('additional-images')?.click()}
-                >
-                  <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-white mb-2">Upload Additional Images</p>
-                  <p className="text-sm text-gray-400 mb-4">Drag and drop or click to select multiple images</p>
+                <div className="mt-2 space-y-4">
+                  {additionalImagePreviews.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {additionalImagePreviews.map((preview, index) => (
+                        <div key={index} className="relative">
+                          <img 
+                            src={preview} 
+                            alt={`Additional image ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-lg border border-[#3a3a4e]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeAdditionalImage(index)}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div 
+                    className="border-2 border-dashed border-[#3a3a4e] rounded-lg p-6 text-center hover:border-[#f6e47c] transition-colors cursor-pointer"
+                    onClick={() => document.getElementById('additional-images')?.click()}
+                  >
+                    <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-white mb-2">Upload Additional Images</p>
+                    <p className="text-sm text-gray-400 mb-4">Drag and drop or click to select multiple images</p>
+                  </div>
                   <Input
                     id="additional-images"
                     type="file"
                     accept="image/*"
                     multiple
+                    onChange={handleAdditionalImagesChange}
                     className="hidden"
                   />
                 </div>
@@ -787,6 +897,7 @@ export default function PlanPage() {
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value || ''}
                         className="bg-[#1e1e2e] border-[#3a3a4e] text-white placeholder:text-gray-400 focus:border-[#f6e47c] focus:ring-[#f6e47c]"
                         placeholder="music, culture, food (comma separated)"
                       />
