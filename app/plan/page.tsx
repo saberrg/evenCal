@@ -51,6 +51,42 @@ const eventSchema = z.object({
   path: ["max_age"],
 })
 
+// Separate schema for drafts - only title is required
+const draftSchema = z.object({
+  title: z.string().min(1, 'Event title is required for drafts').max(255, 'Title must be less than 255 characters'),
+  description: z.string().optional(),
+  short_description: z.string().max(500, 'Short description must be less than 500 characters').optional(),
+  start_datetime: z.string().optional(),
+  end_datetime: z.string().optional(),
+  timezone: z.string().default('UTC'),
+  venue_id: z.string().optional(),
+  capacity: z.number().min(1, 'Capacity must be at least 1').optional(),
+  is_public: z.boolean().default(true),
+  requires_approval: z.boolean().default(false),
+  min_age: z.number().min(0, 'Minimum age must be 0 or greater').optional(),
+  max_age: z.number().min(0, 'Maximum age must be 0 or greater').optional(),
+  visibility: z.enum(['public', 'private', 'unlisted']).default('public'),
+  banner_image_url: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
+  tags: z.string().optional(),
+  ticket_price: z.number().min(0, 'Ticket price must be 0 or greater').optional(),
+}).refine((data) => {
+  if (data.start_datetime && data.end_datetime) {
+    return new Date(data.end_datetime) > new Date(data.start_datetime)
+  }
+  return true
+}, {
+  message: "End date and time must be after start date and time",
+  path: ["end_datetime"],
+}).refine((data) => {
+  if (data.min_age && data.max_age) {
+    return data.max_age >= data.min_age
+  }
+  return true
+}, {
+  message: "Maximum age must be greater than or equal to minimum age",
+  path: ["max_age"],
+})
+
 type EventForm = z.infer<typeof eventSchema>
 
 export default function PlanPage() {
@@ -201,13 +237,16 @@ export default function PlanPage() {
         return
       }
 
+      // For drafts, provide default values for required database fields
+      const isDraft = status === 'draft'
+      
       // Prepare event data
       const eventData = {
         title: data.title,
-        description: data.description,
+        description: isDraft ? (data.description || 'Draft event - description to be added') : data.description,
         short_description: data.short_description || null,
-        start_datetime: data.start_datetime,
-        end_datetime: data.end_datetime,
+        start_datetime: isDraft ? (data.start_datetime || new Date().toISOString()) : data.start_datetime,
+        end_datetime: isDraft ? (data.end_datetime || new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString()) : data.end_datetime,
         timezone: data.timezone,
         organizer_id: userProfile.id,
         venue_id: data.venue_id || null,
@@ -260,12 +299,46 @@ export default function PlanPage() {
     }
   }
 
-  const onSaveDraft = (data: EventForm) => {
-    saveEvent(data, 'draft')
+  const onSaveDraft = async () => {
+    // Use draft schema validation (only title required)
+    const draftValidation = draftSchema.safeParse(form.getValues())
+    
+    if (!draftValidation.success) {
+      // Set form errors for draft validation
+      const errors = draftValidation.error.flatten().fieldErrors
+      Object.entries(errors).forEach(([field, messages]) => {
+        if (messages) {
+          form.setError(field as keyof EventForm, {
+            type: 'validation',
+            message: messages[0]
+          })
+        }
+      })
+      return
+    }
+    
+    saveEvent(draftValidation.data as EventForm, 'draft')
   }
 
-  const onPublish = (data: EventForm) => {
-    saveEvent(data, 'published')
+  const onPublish = async () => {
+    // Use full event schema validation for publishing
+    const publishValidation = eventSchema.safeParse(form.getValues())
+    
+    if (!publishValidation.success) {
+      // Set form errors for publish validation
+      const errors = publishValidation.error.flatten().fieldErrors
+      Object.entries(errors).forEach(([field, messages]) => {
+        if (messages) {
+          form.setError(field as keyof EventForm, {
+            type: 'validation',
+            message: messages[0]
+          })
+        }
+      })
+      return
+    }
+    
+    saveEvent(publishValidation.data, 'published')
   }
 
   return (
@@ -731,7 +804,7 @@ export default function PlanPage() {
             <div className="flex flex-col sm:flex-row gap-4 pt-6">
               <Button
                 type="button"
-                onClick={form.handleSubmit(onSaveDraft)}
+                onClick={onSaveDraft}
                 disabled={isLoading}
                 variant="outline"
                 className="flex-1 bg-transparent border-[#f6e47c] text-[#f6e47c] hover:bg-[#f6e47c] hover:text-[#1e1e2e]"
@@ -742,7 +815,7 @@ export default function PlanPage() {
               
               <Button
                 type="button"
-                onClick={form.handleSubmit(onPublish)}
+                onClick={onPublish}
                 disabled={isLoading}
                 className="flex-1 bg-[#f6e47c] text-[#1e1e2e] hover:bg-[#e6d46c]"
               >

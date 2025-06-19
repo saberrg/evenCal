@@ -1,6 +1,6 @@
 'use client';
 
-import { useEvents } from '../context/sEventContext';
+import { useEventContext } from '../context/sEventContext';
 import { useVenue } from '../context/VenueContext';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -13,7 +13,7 @@ function slugify(text: string) {
 }
 
 export default function VenuePage() {
-  const { events, updateEvent } = useEvents();
+  const { events, updateEvent } = useEventContext();
   const { venues } = useVenue();
   const router = useRouter();
 
