@@ -36,7 +36,7 @@ export function Header() {
           <div className="hidden md:flex flex-1 justify-end items-center gap-8">
             {[
               { href: '/venues', label: 'Venues' },
-              { href: '/plan-event', label: 'Plan Event' },
+              { href: '/plan', label: 'Plan Event' },
               { href: '/about', label: 'About' },
             ].map((item) => (
               <div key={item.href} className="relative">
@@ -93,7 +93,7 @@ export function Header() {
                 <Link href="/venues" className="text-lg hover:text-[#f6e47c] transition-colors">
                   Venues
                 </Link>
-                <Link href="/plan-event" className="text-lg hover:text-[#f6e47c] transition-colors">
+                <Link href="/plan" className="text-lg hover:text-[#f6e47c] transition-colors">
                   Plan Event
                 </Link>
                 <Link href="/about" className="text-lg hover:text-[#f6e47c] transition-colors">

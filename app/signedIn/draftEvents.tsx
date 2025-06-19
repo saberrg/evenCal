@@ -106,7 +106,7 @@ export function DraftEvents({ userId }: DraftEventsProps) {
         </p>
         <Button 
           className="bg-[#f6e47c] text-[#1e1e2e] hover:bg-[#e6d46c]"
-          onClick={() => window.location.href = '/plan-event'}
+          onClick={() => window.location.href = '/plan'}
         >
           Create Your First Event
         </Button>
@@ -120,7 +120,7 @@ export function DraftEvents({ userId }: DraftEventsProps) {
         <h2 className="text-2xl font-bold text-white">Draft Events</h2>
         <Button 
           className="bg-[#f6e47c] text-[#1e1e2e] hover:bg-[#e6d46c]"
-          onClick={() => window.location.href = '/plan-event'}
+          onClick={() => window.location.href = '/plan'}
         >
           Create New Event
         </Button>
@@ -137,7 +137,7 @@ export function DraftEvents({ userId }: DraftEventsProps) {
                     variant="ghost"
                     size="sm"
                     className="text-[#f6e47c] hover:text-[#e6d46c] hover:bg-[#3a3a4e]"
-                    onClick={() => window.location.href = `/plan-event?edit=${draft.id}`}
+                    onClick={() => window.location.href = `/plan?edit=${draft.id}`}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -175,7 +175,7 @@ export function DraftEvents({ userId }: DraftEventsProps) {
               <div className="mt-4 pt-4 border-t border-[#3a3a4e]">
                 <Button 
                   className="w-full bg-[#f6e47c] text-[#1e1e2e] hover:bg-[#e6d46c]"
-                  onClick={() => window.location.href = `/plan-event?edit=${draft.id}`}
+                  onClick={() => window.location.href = `/plan?edit=${draft.id}`}
                 >
                   Continue Editing
                 </Button>

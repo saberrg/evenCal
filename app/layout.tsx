@@ -4,6 +4,7 @@ import { Header } from './cutom-components/Header'
 import { Footer } from './cutom-components/Footer'
 import { EventProvider } from './context/sEventContext'
 import { AuthProvider } from './context/AuthContext'
+import { VenueProvider } from './context/VenueContext'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
@@ -27,13 +28,15 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${rozhaOne.variable} flex flex-col min-h-screen`}>
         <AuthProvider>
-          <EventProvider>
-            <Header />
-            <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8">
-              {children}
-            </main>
-            <Footer />
-          </EventProvider>
+          <VenueProvider>
+            <EventProvider>
+              <Header />
+              <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8">
+                {children}
+              </main>
+              <Footer />
+            </EventProvider>
+          </VenueProvider>
         </AuthProvider>
         <Toaster />
       </body>
