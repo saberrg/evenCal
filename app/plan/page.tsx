@@ -51,42 +51,6 @@ const eventSchema = z.object({
   path: ["max_age"],
 })
 
-// Separate schema for drafts - only title is required
-const draftSchema = z.object({
-  title: z.string().min(1, 'Event title is required for drafts').max(255, 'Title must be less than 255 characters'),
-  description: z.string().optional(),
-  short_description: z.string().max(500, 'Short description must be less than 500 characters').optional(),
-  start_datetime: z.string().optional(),
-  end_datetime: z.string().optional(),
-  timezone: z.string().default('UTC'),
-  venue_id: z.string().optional(),
-  capacity: z.number().min(1, 'Capacity must be at least 1').optional(),
-  is_public: z.boolean().default(true),
-  requires_approval: z.boolean().default(false),
-  min_age: z.number().min(0, 'Minimum age must be 0 or greater').optional(),
-  max_age: z.number().min(0, 'Maximum age must be 0 or greater').optional(),
-  visibility: z.enum(['public', 'private', 'unlisted']).default('public'),
-  banner_image_url: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
-  tags: z.string().optional(),
-  ticket_price: z.number().min(0, 'Ticket price must be 0 or greater').optional(),
-}).refine((data) => {
-  if (data.start_datetime && data.end_datetime) {
-    return new Date(data.end_datetime) > new Date(data.start_datetime)
-  }
-  return true
-}, {
-  message: "End date and time must be after start date and time",
-  path: ["end_datetime"],
-}).refine((data) => {
-  if (data.min_age && data.max_age) {
-    return data.max_age >= data.min_age
-  }
-  return true
-}, {
-  message: "Maximum age must be greater than or equal to minimum age",
-  path: ["max_age"],
-})
-
 type EventForm = z.infer<typeof eventSchema>
 
 export default function PlanPage() {
@@ -379,45 +343,18 @@ export default function PlanPage() {
   }
 
   const onSaveDraft = async () => {
-    // Use draft schema validation (only title required)
-    const draftValidation = draftSchema.safeParse(form.getValues())
-    
-    if (!draftValidation.success) {
-      // Set form errors for draft validation
-      const errors = draftValidation.error.flatten().fieldErrors
-      Object.entries(errors).forEach(([field, messages]) => {
-        if (messages) {
-          form.setError(field as keyof EventForm, {
-            type: 'validation',
-            message: messages[0]
-          })
-        }
-      })
-      return
-    }
-    
-    saveEvent(draftValidation.data as EventForm, 'draft')
+    const data = form.getValues();
+    saveEvent(data, 'draft');
   }
 
   const onPublish = async () => {
-    // Use full event schema validation for publishing
-    const publishValidation = eventSchema.safeParse(form.getValues())
-    
-    if (!publishValidation.success) {
-      // Set form errors for publish validation
-      const errors = publishValidation.error.flatten().fieldErrors
-      Object.entries(errors).forEach(([field, messages]) => {
-        if (messages) {
-          form.setError(field as keyof EventForm, {
-            type: 'validation',
-            message: messages[0]
-          })
-        }
-      })
+    const isValid = await form.trigger()
+    if (!isValid) {
+      toast.error('Please fill in all required fields before publishing.')
       return
     }
-    
-    saveEvent(publishValidation.data, 'published')
+    const data = form.getValues();
+    saveEvent(data, 'published')
   }
 
   return (
