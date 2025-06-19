@@ -9,14 +9,17 @@ import { toast } from 'sonner'
 
 interface DraftEvent {
   id: string
-  name: string
+  title: string
   description: string
-  startDateTime: string
-  endDateTime: string
-  venueName: string
-  imageUrl?: string
+  start_datetime: string
+  end_datetime: string
+  venue_id: string
+  banner_image_url?: string
   status: 'draft' | 'published'
   created_at: string
+  venues?: {
+    name: string
+  }
 }
 
 interface DraftEventsProps {
@@ -35,7 +38,12 @@ export function DraftEvents({ userId }: DraftEventsProps) {
     try {
       const { data, error } = await supabase
         .from('events')
-        .select('*')
+        .select(`
+          *,
+          venues (
+            name
+          )
+        `)
         .eq('organizer_id', userId)
         .eq('status', 'draft')
         .order('created_at', { ascending: false })
@@ -81,9 +89,9 @@ export function DraftEvents({ userId }: DraftEventsProps) {
     })
   }
 
-  const formatTime = (startDateTime: string, endDateTime: string) => {
-    const start = new Date(startDateTime)
-    const end = new Date(endDateTime)
+  const formatTime = (start_datetime: string, end_datetime: string) => {
+    const start = new Date(start_datetime)
+    const end = new Date(end_datetime)
     return `${start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} - ${end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
   }
 
@@ -131,7 +139,7 @@ export function DraftEvents({ userId }: DraftEventsProps) {
           <Card key={draft.id} className="bg-[#1e1e2e] border-[#3a3a4e] text-white">
             <CardHeader className="pb-3">
               <div className="flex justify-between items-start">
-                <CardTitle className="text-lg text-white">{draft.name}</CardTitle>
+                <CardTitle className="text-lg text-white">{draft.title}</CardTitle>
                 <div className="flex gap-2">
                   <Button
                     variant="ghost"
@@ -160,15 +168,15 @@ export function DraftEvents({ userId }: DraftEventsProps) {
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2 text-gray-300">
                   <Calendar className="h-4 w-4" />
-                  <span>{formatDate(draft.startDateTime)}</span>
+                  <span>{formatDate(draft.start_datetime)}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-300">
                   <Clock className="h-4 w-4" />
-                  <span>{formatTime(draft.startDateTime, draft.endDateTime)}</span>
+                  <span>{formatTime(draft.start_datetime, draft.end_datetime)}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-300">
                   <MapPin className="h-4 w-4" />
-                  <span>{draft.venueName}</span>
+                  <span>{draft.venues?.name || 'No venue selected'}</span>
                 </div>
               </div>
 

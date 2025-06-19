@@ -259,31 +259,55 @@ export default function PlanPage() {
   const saveEvent = async (data: EventForm, status: 'draft' | 'published') => {
     setIsLoading(true)
     try {
-      // Get user profile to get the user ID from our users table
+      // Get current user
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (!currentUser) {
+        toast.error('User not authenticated')
+        return
+      }
+
+      // Get or create user profile in users table
       let { data: userProfile, error: profileError } = await supabase
         .from('users')
-        .select('id')
-        .eq('auth_user_id', user.id)
+        .select('id, email, first_name, last_name')
+        .eq('auth_user_id', currentUser.id)
         .single()
 
-      if (profileError) {
-        // If user doesn't exist in users table, create them
+      if (profileError && profileError.code === 'PGRST116') {
+        // User doesn't exist, create them
+        const displayName = currentUser.user_metadata?.name || 
+                           currentUser.user_metadata?.full_name || 
+                           currentUser.email?.split('@')[0] || 
+                           'User'
+        
+        // Split display name into first and last name
+        const nameParts = displayName.split(' ')
+        const firstName = nameParts[0] || 'User'
+        const lastName = nameParts.slice(1).join(' ') || 'User'
+        
         const { data: newUser, error: createError } = await supabase
           .from('users')
           .insert([{
-            auth_user_id: user.id,
-            email: user.email,
-            username: user.user_metadata?.name || user.email?.split('@')[0] || 'user'
+            auth_user_id: currentUser.id,
+            email: currentUser.email,
+            first_name: firstName,
+            last_name: lastName,
+            is_organizer: true // Set as organizer since they're creating events
           }])
-          .select()
+          .select('id, email, first_name, last_name')
           .single()
 
         if (createError) {
           toast.error('Failed to create user profile')
+          console.error('Create user error:', createError)
           return
         }
 
         userProfile = newUser
+      } else if (profileError) {
+        toast.error('Failed to get user profile')
+        console.error('Profile error:', profileError)
+        return
       }
 
       if (!userProfile) {
@@ -302,7 +326,8 @@ export default function PlanPage() {
         start_datetime: isDraft ? (data.start_datetime || new Date().toISOString()) : data.start_datetime,
         end_datetime: isDraft ? (data.end_datetime || new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString()) : data.end_datetime,
         timezone: data.timezone,
-        organizer_id: userProfile.id,
+        organizer_id: userProfile.id, // Use the users table ID as organizer_id
+        organizator_name: `${userProfile.first_name} ${userProfile.last_name}`, // Store the organizer name
         venue_id: data.venue_id || null,
         capacity: data.capacity || null,
         is_public: data.is_public,

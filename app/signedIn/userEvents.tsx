@@ -1,19 +1,76 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/app/context/AuthContext'
 import { DraftEvents } from './draftEvents'
 import { PastEvents } from './pastEvents'
 import { Tickets } from './tickets'
 import { Calendar, Clock, Ticket } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
+import { toast } from 'sonner'
 
 export function UserEvents() {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState<'drafts' | 'past' | 'tickets'>('drafts')
+  const [userProfileId, setUserProfileId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (user) {
+      getUserProfile()
+    }
+  }, [user])
+
+  const getUserProfile = async () => {
+    if (!user) return
+    
+    try {
+      setLoading(true)
+      // Get user profile from users table
+      const { data: userProfile, error: profileError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('auth_user_id', user.id)
+        .single()
+
+      if (profileError) {
+        console.error('Error getting user profile:', profileError)
+        toast.error('Failed to load user profile')
+      } else if (userProfile) {
+        setUserProfileId(userProfile.id)
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      toast.error('Failed to load user profile')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   if (!user) {
     return null
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#f6e47c] mx-auto"></div>
+          <p className="mt-2 text-[#1e1e2e]">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!userProfileId) {
+    return (
+      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <p className="mt-2 text-[#1e1e2e]">User profile not found. Please try refreshing the page.</p>
+        </div>
+      </div>
+    )
   }
 
   const tabs = [
@@ -73,9 +130,9 @@ export function UserEvents() {
 
       {/* Tab Content */}
       <div className="bg-[#2a2a3e] rounded-lg p-6 shadow-xl border border-[#3a3a4e]">
-        {activeTab === 'drafts' && <DraftEvents userId={user.id} />}
-        {activeTab === 'past' && <PastEvents userId={user.id} />}
-        {activeTab === 'tickets' && <Tickets userId={user.id} />}
+        {activeTab === 'drafts' && <DraftEvents userId={userProfileId} />}
+        {activeTab === 'past' && <PastEvents userId={userProfileId} />}
+        {activeTab === 'tickets' && <Tickets userId={userProfileId} />}
       </div>
     </div>
   )
