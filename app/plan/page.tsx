@@ -61,6 +61,8 @@ export default function PlanPage() {
   const editId = searchParams.get('edit')
   
   const [isLoading, setIsLoading] = useState(false)
+  const [isDraftLoading, setIsDraftLoading] = useState(false)
+  const [isPublishLoading, setIsPublishLoading] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [featuredImage, setFeaturedImage] = useState<File | null>(null)
   const [featuredImagePreview, setFeaturedImagePreview] = useState<string>('')
@@ -222,6 +224,11 @@ export default function PlanPage() {
 
   const saveEvent = async (data: EventForm, status: 'draft' | 'published') => {
     setIsLoading(true)
+    if (status === 'draft') {
+      setIsDraftLoading(true)
+    } else {
+      setIsPublishLoading(true)
+    }
     try {
       // Get current user
       const { data: { user: currentUser } } = await supabase.auth.getUser()
@@ -339,22 +346,28 @@ export default function PlanPage() {
       console.error('Error:', error)
     } finally {
       setIsLoading(false)
+      setIsDraftLoading(false)
+      setIsPublishLoading(false)
     }
   }
 
-  const onSaveDraft = async () => {
+  const onSaveDraft = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     const data = form.getValues();
-    saveEvent(data, 'draft');
+    await saveEvent(data, 'draft');
   }
 
-  const onPublish = async () => {
+  const onPublish = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     const isValid = await form.trigger()
     if (!isValid) {
       toast.error('Please fill in all required fields before publishing.')
       return
     }
     const data = form.getValues();
-    saveEvent(data, 'published')
+    await saveEvent(data, 'published')
   }
 
   return (
@@ -380,7 +393,7 @@ export default function PlanPage() {
       {/* Form */}
       <div className="bg-[#2a2a3e] rounded-lg p-8 shadow-xl border border-[#3a3a4e]">
         <Form {...form}>
-          <form className="space-y-8">
+          <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
             {/* Basic Information */}
             <div className="space-y-6">
               <div className="flex items-center gap-2 mb-4">
@@ -878,22 +891,22 @@ export default function PlanPage() {
               <Button
                 type="button"
                 onClick={onSaveDraft}
-                disabled={isLoading}
+                disabled={isDraftLoading || isPublishLoading}
                 variant="outline"
                 className="flex-1 bg-transparent border-[#f6e47c] text-[#f6e47c] hover:bg-[#f6e47c] hover:text-[#1e1e2e]"
               >
                 <Save className="h-4 w-4 mr-2" />
-                {isLoading ? 'Saving...' : 'Save as Draft'}
+                {isDraftLoading ? 'Saving...' : 'Save as Draft'}
               </Button>
               
               <Button
                 type="button"
                 onClick={onPublish}
-                disabled={isLoading}
+                disabled={isDraftLoading || isPublishLoading}
                 className="flex-1 bg-[#f6e47c] text-[#1e1e2e] hover:bg-[#e6d46c]"
               >
                 <Send className="h-4 w-4 mr-2" />
-                {isLoading ? 'Publishing...' : 'Publish Event'}
+                {isPublishLoading ? 'Publishing...' : 'Publish Event'}
               </Button>
             </div>
           </form>
