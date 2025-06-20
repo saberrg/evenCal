@@ -15,6 +15,7 @@ import { toast } from 'sonner'
 import { useAuth } from '@/app/context/AuthContext'
 import { useVenue } from '@/app/context/VenueContext'
 import Link from 'next/link'
+import StripeConnectSetup from '@/app/components/StripeConnectSetup'
 
 const eventSchema = z.object({
   title: z.string().min(1, 'Event title is required').max(255, 'Title must be less than 255 characters'),
@@ -68,6 +69,7 @@ export default function PlanPage() {
   const [featuredImagePreview, setFeaturedImagePreview] = useState<string>('')
   const [additionalImages, setAdditionalImages] = useState<File[]>([])
   const [additionalImagePreviews, setAdditionalImagePreviews] = useState<string[]>([])
+  const [stripeSetupComplete, setStripeSetupComplete] = useState(false)
 
   const form = useForm<EventForm>({
     resolver: zodResolver(eventSchema),
@@ -366,7 +368,15 @@ export default function PlanPage() {
       toast.error('Please fill in all required fields before publishing.')
       return
     }
+    
     const data = form.getValues();
+    
+    // Check if Stripe setup is required and completed
+    if (data.ticket_price && data.ticket_price > 0 && !stripeSetupComplete) {
+      toast.error('Please complete payment processing setup before publishing a paid event.')
+      return
+    }
+    
     await saveEvent(data, 'published')
   }
 
@@ -619,6 +629,20 @@ export default function PlanPage() {
                 )}
               />
             </div>
+
+            {/* Stripe Payment Setup */}
+            {form.watch('ticket_price') && form.watch('ticket_price')! > 0 && (
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <DollarSign className="h-5 w-5 text-[#f6e47c]" />
+                  <h2 className="text-xl font-semibold text-white">Payment Processing</h2>
+                </div>
+                <StripeConnectSetup
+                  ticketPrice={form.watch('ticket_price') || 0}
+                  onSetupComplete={() => setStripeSetupComplete(true)}
+                />
+              </div>
+            )}
 
             {/* Age Restrictions */}
             <div className="space-y-6">
