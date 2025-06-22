@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, ReactNode } from 'react';
+import { supabase } from '@/lib/supabase';
 
 interface VenueImage {
   url: string;
@@ -15,6 +16,17 @@ export interface Venue {
   catering: boolean;
   menuLink?: string;
   images: VenueImage[];
+}
+
+export interface VenueAvailability {
+  venueId: number;
+  isAvailable: boolean;
+  conflictingEvents?: {
+    id: string;
+    title: string;
+    start_datetime: string;
+    end_datetime: string;
+  }[];
 }
 
 const venues: Venue[] = [
@@ -56,14 +68,85 @@ const venues: Venue[] = [
 
 interface VenueContextType {
   venues: Venue[];
-  // Add more venue-related functions here as needed
+  checkVenueAvailability: (venueId: number, startDateTime: string, endDateTime: string, excludeEventId?: string) => Promise<VenueAvailability>;
+  getAvailableVenues: (startDateTime: string, endDateTime: string, excludeEventId?: string) => Promise<VenueAvailability[]>;
 }
 
 const VenueContext = createContext<VenueContextType | undefined>(undefined);
 
 export function VenueProvider({ children }: { children: ReactNode }) {
+  // Check if a venue is available for a specific date/time range
+  const checkVenueAvailability = async (
+    venueId: number, 
+    startDateTime: string, 
+    endDateTime: string, 
+    excludeEventId?: string
+  ): Promise<VenueAvailability> => {
+    try {
+      const venue = venues.find(v => v.id === venueId);
+      if (!venue) {
+        return { venueId, isAvailable: false };
+      }
+
+      // Query for conflicting events at this venue
+      // Events conflict if they overlap in time: 
+      // (event_start < new_end) AND (event_end > new_start)
+      let query = supabase
+        .from('events')
+        .select('id, title, start_datetime, end_datetime')
+        .eq('venue_id', venueId.toString())
+        .neq('status', 'cancelled')
+        .lt('start_datetime', endDateTime)
+        .gt('end_datetime', startDateTime);
+
+      // Exclude current event if editing
+      if (excludeEventId) {
+        query = query.neq('id', excludeEventId);
+      }
+
+      const { data: conflictingEvents, error } = await query;
+
+      if (error) {
+        console.error('Error checking venue availability:', error);
+        return { venueId, isAvailable: false };
+      }
+
+      const isAvailable = !conflictingEvents || conflictingEvents.length === 0;
+
+      return {
+        venueId,
+        isAvailable,
+        conflictingEvents: conflictingEvents || []
+      };
+    } catch (error) {
+      console.error('Error in checkVenueAvailability:', error);
+      return { venueId, isAvailable: false };
+    }
+  };
+
+  // Get availability for all venues for a specific date/time range
+  const getAvailableVenues = async (
+    startDateTime: string, 
+    endDateTime: string, 
+    excludeEventId?: string
+  ): Promise<VenueAvailability[]> => {
+    const availabilityPromises = venues.map(venue => 
+      checkVenueAvailability(venue.id, startDateTime, endDateTime, excludeEventId)
+    );
+
+    try {
+      const availabilities = await Promise.all(availabilityPromises);
+      return availabilities;
+    } catch (error) {
+      console.error('Error getting available venues:', error);
+      return venues.map(venue => ({ venueId: venue.id, isAvailable: false }));
+    }
+  };
+
   const value = {
     venues,
+    checkVenueAvailability,
+    getAvailableVenues,
   };
 
   return (
